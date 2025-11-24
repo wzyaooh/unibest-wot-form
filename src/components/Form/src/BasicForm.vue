@@ -5,12 +5,28 @@
         <slot />
       </template>
       <template v-else>
-        <FormItems
-          :form-model="formModel"
-          :schemas="getSchema"
-          :form-action-type="formActionType"
-          @change-form-model="changeFormModel"
-        />
+        <view
+          class="naive-grid" :style="{
+            'grid-template-columns': `repeat(2, 1fr)`,
+          }"
+        >
+          <view
+            v-for="schema in schemas"
+            :key="schema.field"
+            class="naive-grid-item"
+            :style="{
+              'grid-column': schema.giProps ? `span ${schema.giProps.span}` : 'span 1',
+            }"
+          >
+            <FormItems
+              :form-model="formModel"
+              :schema="schema"
+              :vertical="getProps.layout"
+              :form-action-type="formActionType"
+              @change-form-model="changeFormModel"
+            />
+          </view>
+        </view>
         <view v-if="getProps.showActionButtonGroup" class="buttonContainer">
           <wd-button v-if="getProps.showResetButton" custom-class="custom-submit" @click="reset">
             {{ getProps.resetButtonText }}
@@ -25,6 +41,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { GridProps } from 'wot-design-uni/components/wd-grid/types'
 import type { FormActionType, FormGroupRow, FormProps, FormSchema } from './types/form'
 import { reactive, unref, useAttrs } from 'vue'
 import { deepMerge } from '@/utils'
@@ -131,6 +148,12 @@ async function updateSchema(schemaProps: FormSchema | FormSchema[]): Promise<voi
 
 }
 
+const getGrid = computed((): GridProps => {
+  return {
+    ...unref(getProps)['grid-props'],
+  }
+})
+
 const { handleFormValues, initDefault } = useFormValues({
   defaultFormModel,
   getSchema,
@@ -191,4 +214,13 @@ defineExpose({
 
 <style lang="scss" scoped>
 @import './styles/basicForm.scss';
+.naive-grid {
+  display: grid;
+  /* 定义3列，每列宽度相等 */
+
+  /* 定义行高，auto 表示根据内容自动调整 */
+  // grid-auto-rows: minmax(50px, 10px);
+  /* 定义网格间距 */
+  gap: 0 10px;
+}
 </style>

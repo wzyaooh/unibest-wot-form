@@ -1,7 +1,7 @@
 import type { ButtonProps } from 'wot-design-uni/components/wd-button/types'
-import type { ColProps } from 'wot-design-uni/components/wd-col/types'
 import type { FormItemRule } from 'wot-design-uni/components/wd-form/types'
-import type { RowProvide } from 'wot-design-uni/components/wd-row/types'
+import type { GridItemProps } from 'wot-design-uni/components/wd-grid-item/types'
+import type { GridProps } from 'wot-design-uni/components/wd-grid/types'
 import type { ComponentType } from './index'
 
 export interface FormProps {
@@ -16,11 +16,12 @@ export interface FormProps {
   submitButtonOptions?: Partial<ButtonProps>
   submitButtonText?: string
   resetButtonText?: string
-  gridProps?: RowProvide
-  giProps?: ColProps
+  gridProps?: GridProps
+  giProps?: GridItemProps
   resetFunc?: () => Promise<void>
   submitFunc?: () => Promise<void>
   border?: boolean
+  layout?: string
 }
 
 export interface componentSlotsRenderOptions {
@@ -44,6 +45,7 @@ export interface FormSchema {
   isHidden?: boolean
   required?: boolean
   border?: boolean
+  giProps: object
 }
 // 分组表单内容配置项
 export interface FormGroupRow {
