@@ -1,0 +1,29 @@
+.basicForm {
+  width: 100%;
+  .buttonContainer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 166rpx;
+    background: blue;
+    width: 100%;
+    border-top: 2rpx solid rgba(0, 0, 0, 0.18);
+    z-index: 333;
+    display: flex;
+    justify-content: center;
+    padding-top: 5rpx;
+    :deep(.custom-submit) {
+      width: 686rpx !important;
+      height: 88rpx !important;
+      border-radius: 8rpx !important;
+      background: #2f6be9 !important;
+      color: #ffffff !important;
+      font-weight: 500 !important;
+      font-size: 32rpx !important;
+      margin: 12rpx;
+      font-family:
+        PingFang SC,
+        PingFang SC !important;
+    }
+  }
+}
