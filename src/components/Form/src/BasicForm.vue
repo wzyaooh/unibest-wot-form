@@ -2,8 +2,46 @@
   <view class="basicForm">
     <wd-form ref="formElRef" v-bind="getBindValue" :model="formModel">
       <template v-if="getProps.group && getProps.group.length">
-        <slot />
+        <GroupCard
+          v-for="pItem in getGroupSchemas" :key="pItem.title"
+          :title="pItem.title"
+        >
+          <view>
+            <view
+              class="naive-grid" :style="{
+                'grid-template-columns': `repeat(2, 1fr)`,
+              }"
+            >
+              <view
+                v-for="schema in pItem.columns"
+                :key="schema.field"
+                class="naive-grid-item"
+                :class="{ hidden: getHidden(schema) }"
+                :style="{
+                  'grid-column': schema.giProps ? `span ${schema.giProps.span}` : `span 2`,
+                }"
+              >
+                <FormItems
+                  :form-model="formModel"
+                  :schema="schema"
+                  :vertical="getProps.layout"
+                  :form-action-type="formActionType"
+                  @change-form-model="changeFormModel"
+                />
+              </view>
+            </view>
+            <view v-if="getProps.showActionButtonGroup" class="buttonContainer">
+              <wd-button v-if="getProps.showResetButton" custom-class="custom-submit" @click="reset">
+                {{ getProps.resetButtonText }}
+              </wd-button>
+              <wd-button v-if="props.showSubmitButton" custom-class="custom-submit" @click="handleSubmit">
+                {{ getProps.submitButtonText }}
+              </wd-button>
+            </view>
+          </view>
+        </GroupCard>
       </template>
+
       <template v-else>
         <view
           class="naive-grid" :style="{
@@ -11,11 +49,12 @@
           }"
         >
           <view
-            v-for="schema in schemas"
+            v-for="schema in getSchema"
             :key="schema.field"
             class="naive-grid-item"
+            :class="{ hidden: getHidden(schema) }"
             :style="{
-              'grid-column': schema.giProps ? `span ${schema.giProps.span}` : 'span 1',
+              'grid-column': schema.giProps ? `span ${schema.giProps.span}` : `span 2`,
             }"
           >
             <FormItems
@@ -43,12 +82,14 @@
 <script lang="ts" setup>
 import type { GridProps } from 'wot-design-uni/components/wd-grid/types'
 import type { FormActionType, FormGroupRow, FormProps, FormSchema } from './types/form'
+import { isNil, uniqBy } from 'lodash-es'
 import { reactive, unref, useAttrs } from 'vue'
 import { deepMerge } from '@/utils'
-import { isArray } from '@/utils/is'
+import { isArray, isBoolean, isObject } from '@/utils/is'
 import FormItems from './FormItems.vue'
 import { useFormEvents } from './hooks/useFormEvents'
 import { useFormValues } from './hooks/useFormValues'
+import GroupCard from './Layout/card.vue'
 import { basicProps } from './props'
 
 defineOptions({
@@ -88,6 +129,16 @@ function changeFormModel(updateModel: Recordable) {
   Object.assign(formModel, updateModel)
 }
 
+function getHidden(schema): boolean {
+  console.log('进来了')
+
+  const hidden = schema.isHidden
+  if (isBoolean(hidden)) {
+    return hidden
+  }
+  return false
+}
+
 // 获取form的props 并且组装
 // TODO 分组表单props组装
 const getProps = computed((): FormProps => {
@@ -101,6 +152,17 @@ const getProps = computed((): FormProps => {
       rulesObj.rules[item.field] = item.rules
     }
   })
+
+  // 组装分组表单
+  if (props.group && props.group.length) {
+    props.group.forEach((item) => {
+      item.columns.forEach((colItem) => {
+        if (colItem.rules && isArray(colItem.rules)) {
+          rulesObj.rules[colItem.field] = colItem.rules
+        }
+      })
+    })
+  }
   console.log('获取BasicFormProps', { ...formProps, ...unref(rulesObj) })
   return { ...formProps, ...unref(rulesObj) }
 })
@@ -126,6 +188,7 @@ const getSchema = computed((): FormSchema[] => {
 })
 // 设置Schema
 async function setSchema(schemaProps: FormSchema[]): Promise<void> {
+  console.log(schemaProps, 'setSchema')
   schemaRef.value = schemaProps
 }
 
@@ -142,10 +205,6 @@ async function setGroupSchema(schemaProps: FormGroupRow[]): Promise<void> {
 // 更新loading状态
 function setLoading(status: boolean): void {
   loading.value = status
-}
-
-async function updateSchema(schemaProps: FormSchema | FormSchema[]): Promise<void> {
-
 }
 
 const getGrid = computed((): GridProps => {
@@ -187,6 +246,73 @@ const formActionType: Partial<FormActionType> = {
   submit: handleSubmit,
   updateSchema,
 }
+/**
+ * 设置表单默认值
+ * @param data
+ */
+function _setDefaultValue(data: FormSchema | FormSchema[]) {
+  let schemas: FormSchema[] = []
+  if (isObject(data)) {
+    schemas.push(data as FormSchema)
+  }
+
+  if (isArray(data)) {
+    schemas = [...data]
+  }
+
+  const obj: Recordable = {}
+  const currentFieldsValue = getFieldsValue()
+  schemas.forEach((item) => {
+    if (
+      Reflect.has(item, 'field')
+      && item.field
+      && !isNil(item.defaultValue)
+      && (!(item.field in currentFieldsValue) || isNil(currentFieldsValue[item.field]))
+    ) {
+      obj[item.field] = item.defaultValue
+    }
+  })
+  console.log(obj, 'obj')
+  Object.keys(obj).length && setFieldsValue(obj)
+}
+
+async function updateSchema(schemaProps: FormSchema | FormSchema[]): Promise<void> {
+  let updateData: Partial<FormSchema>[] = []
+  if (isObject(schemaProps)) {
+    updateData.push(schemaProps as FormSchema)
+  }
+
+  if (isArray(schemaProps)) {
+    updateData = [...schemaProps]
+  }
+
+  const hasField = updateData.every(item => Reflect.has(item, 'field') && item.field)
+
+  if (!hasField) {
+    throw new Error(
+      'All children of the form Schema array that need to be updated must contain the `field` field',
+    )
+  }
+
+  const schema: FormSchema[] = []
+  const updatedSchema: FormSchema[] = []
+  unref(getSchema).forEach((val) => {
+    const updateItem = updateData.find(item => item.field === val.field)
+
+    if (updateItem) {
+      const newSchema = deepMerge(val, updateItem)
+      updatedSchema.push(newSchema as FormSchema)
+      schema.push(newSchema as FormSchema)
+    }
+    else {
+      schema.push(val)
+    }
+  })
+  console.log(updatedSchema, getSchema.value, 'updatedSchema', 'schema')
+
+  _setDefaultValue(updatedSchema)
+  await setSchema(uniqBy(schema, 'field'))
+}
 
 watch(
   () => getSchema.value,
@@ -222,5 +348,8 @@ defineExpose({
   // grid-auto-rows: minmax(50px, 10px);
   /* 定义网格间距 */
   gap: 0 10px;
+}
+.hidden {
+  display: none;
 }
 </style>

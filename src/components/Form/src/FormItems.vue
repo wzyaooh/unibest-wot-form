@@ -5,6 +5,7 @@
     :required="schema.required"
     :vertical="vertical"
     :label-width="schema.labelWidth"
+    :clickable="schema.clickable"
   >
     <wd-input
       v-if="schema.component === 'WdInput'"
@@ -12,27 +13,25 @@
       :prop="schema.field"
       :rules="schema.rules"
       no-border
-      :placeholder="schema.componentProps.placeholder"
+      v-bind="schema.componentProps"
+      :clearable="true"
     />
     <view class="picker">
       <wd-picker
         v-if="schema.component === 'WdPicker'"
+        v-bind="schema.componentProps"
         v-model="localForm[schema.field]"
-        :columns="schema.componentProps.columns"
         :prop="schema.field"
         :rules="schema.rules"
-        :placeholder="schema.componentProps.placeholder"
       />
     </view>
     <view class="picker">
       <wd-select-picker
         v-if="schema.component === 'WdSelectPicker'"
         v-model="localForm[schema.field]"
-        :type="schema.componentProps.type"
-        :columns="schema.componentProps.columns"
         :prop="schema.field"
         :rules="schema.rules"
-        :placeholder="schema.componentProps.placeholder"
+        v-bind="schema.componentProps"
       />
     </view>
     <view class="picker">
@@ -41,7 +40,7 @@
         v-model="localForm[schema.field]"
         :prop="schema.field"
         :rules="schema.rules"
-        :placeholder="schema.componentProps.placeholder"
+        v-bind="schema.componentProps"
       />
     </view>
     <view class="picker">
@@ -50,7 +49,7 @@
         v-model="localForm[schema.field]"
         :prop="schema.field"
         :rules="schema.rules"
-        :placeholder="schema.componentProps.placeholder"
+        v-bind="schema.componentProps"
       />
     </view>
     <view class="picker">
@@ -59,7 +58,7 @@
         v-model="localForm[schema.field]"
         :prop="schema.field"
         :rules="schema.rules"
-        :placeholder="schema.componentProps.placeholder"
+        v-bind="schema.componentProps"
         custom-style="height:65rpx"
       />
     </view>

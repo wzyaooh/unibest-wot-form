@@ -45,14 +45,13 @@ export interface FormSchema {
   isHidden?: boolean
   required?: boolean
   border?: boolean
-  giProps: object
+  giProps?: object
+  clickable?: boolean
 }
 // 分组表单内容配置项
 export interface FormGroupRow {
   key?: string
   title: string
-  // cardProps?: CardProps;
-  // cardSlots?: CardSlots;
   columns: FormSchema[]
 }
 

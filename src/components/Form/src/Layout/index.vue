@@ -3,16 +3,25 @@
     :required="required"
     :border="false"
     :prop="prop"
-    :label="label"
     :rules="rules"
     custom-style="border-bottom:1px solid #EBEBEB;"
+    :clickable="clickable"
+    @click="showToast"
   >
+    <template #title>
+      <view class="cell-label">
+        <view class="cell-label-text">
+          {{ label }}
+        </view>
+      </view>
+    </template>
     <slot />
   </wd-cell>
+  <wd-toast />
 </template>
 
 <script lang="ts" setup>
-import { useQueue } from 'wot-design-uni'
+import { useToast } from 'wot-design-uni'
 import { layoutProps } from './type'
 
 defineOptions({
@@ -23,7 +32,11 @@ defineOptions({
 
 const props = defineProps(layoutProps)
 
-const { closeOutside } = useQueue()
+const toast = useToast()
+
+function showToast() {
+  toast.show('点击')
+}
 </script>
 
 <style lang="scss" scoped>

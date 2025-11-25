@@ -34,11 +34,11 @@ definePage({
   },
 })
 
-const schemas: FormSchema[] = reactive([
+const schemas: FormSchema[] = [
   {
     field: 'name',
     component: 'WdInput',
-    isHidden: true,
+    isHidden: false,
     label: '姓名',
     // defaultValue: 1,
     border: true,
@@ -58,7 +58,7 @@ const schemas: FormSchema[] = reactive([
 
     field: 'name1',
     component: 'WdInput',
-    isHidden: true,
+    isHidden: false,
     label: '姓名',
     // defaultValue: 1,
     border: true,
@@ -95,6 +95,7 @@ const schemas: FormSchema[] = reactive([
     field: 'WdSelectPicker',
     component: 'WdSelectPicker',
     label: '单选复选',
+    isHidden: true,
     componentProps: {
       placeholder: '请输入年龄',
       type: 'checkbox', // checkbox
@@ -164,7 +165,7 @@ const schemas: FormSchema[] = reactive([
     },
     rules: [{ required: true, message: '请输入姓名' }],
   },
-])
+]
 
 function handleSubmit(values) {
   console.log('1', '===>', values)
